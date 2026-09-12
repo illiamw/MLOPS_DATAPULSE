@@ -133,7 +133,7 @@ jobs:
           docker compose down -v
 
 
-  # =========================================================
+   # =========================================================
   # CD - DEPLOY AWS EC2
   # =========================================================
 
@@ -163,33 +163,57 @@ jobs:
 
           script: |
 
+            set -e
+
             echo "========================================"
             echo "Starting DATAPULSE deployment"
             echo "========================================"
 
-            sudo su
+            # -------------------------------------------------
+            # CHECK DIRECTORY
+            # -------------------------------------------------
 
-            git clone https://github.com/illiamw/DATAPULSE.git
+            cd /home/${{ secrets.EC2_USER }}/DATAPULSE
 
-            cd ~/DATAPULSE
+            echo "Current directory:"
+            pwd
 
             echo "Updating repository..."
-            git pull origin main
+
+            sudo git fetch origin main
+            sudo git reset --hard origin/main
+
+            # -------------------------------------------------
+            # DOCKER
+            # -------------------------------------------------
 
             echo "Pulling latest Docker images..."
-            docker compose pull
+
+            sudo docker compose pull
 
             echo "Stopping old containers..."
-            docker compose down
+
+            sudo docker compose down
 
             echo "Starting new containers..."
-            docker compose up -d
+
+            sudo docker compose up -d
+
+            # -------------------------------------------------
+            # CLEANUP
+            # -------------------------------------------------
 
             echo "Cleaning unused Docker images..."
-            docker image prune -f
+
+            sudo docker image prune -f
+
+            # -------------------------------------------------
+            # CHECK
+            # -------------------------------------------------
 
             echo "Checking containers..."
-            docker compose ps
+
+            sudo docker compose ps
 
             echo "========================================"
             echo "Deployment completed"
